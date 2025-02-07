@@ -1,9 +1,8 @@
 name: directory-listing
 on:
-  workflow_dispatch:
-#  push:
-#    branches:
-#      - main
+  push:
+    branches:
+      - status
 
 jobs:
   pages-directory-listing:
