@@ -1,8 +1,9 @@
 name: directory-listing
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+#  push:
+#    branches:
+#      - main
 
 jobs:
   pages-directory-listing:
@@ -18,3 +19,11 @@ jobs:
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
           FOLDER: files      #directory to generate index
+
+      - name: Push To Main
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add files/
+          git commit -m "Update files from files.json" || true
+          git push origin main
