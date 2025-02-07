@@ -3,7 +3,9 @@ name: Sync Files from JSON
 on:
   push:
     branches:
-      - files  # 监听 files 分支的推送
+      - files
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   sync-files:
@@ -13,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: files  # 检出 files 分支
+          ref: files
 
       - name: Create temporary folder
         run: mkdir -p /tmp/files
