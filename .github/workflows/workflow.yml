@@ -34,6 +34,27 @@ jobs:
             curl -L -o "files/$FILE_NAME" "$FILE_URL"
             echo "Downloaded $FILE_NAME from $FILE_URL"
           done
+      - name: Commit and push files
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用GitHub提供的Token
+        run: |
+          #!/bin/bash
+          # 配置Git用户信息
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 添加所有新下载的文件
+          git add .
+
+          # 检查是否有文件需要提交
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            # 提交更改
+            git commit -m "Add downloaded files"
+            # 推送更改
+            git push origin HEAD
+          fi
         
     
   pages-directory-listing:
