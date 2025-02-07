@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - files
-  workflow_dispatch: 
   schedule:
     - cron: '0 0 * * *'
 
