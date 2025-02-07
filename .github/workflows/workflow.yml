@@ -1,0 +1,36 @@
+name: Download and Deploy pages
+on:
+  push:
+    branches:
+      - files
+  workflow_dispatch: 
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  download_files:
+    runs-on: ubuntu-latest
+    name: Download Files
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - run: |
+          pwd
+        
+    
+  pages-directory-listing:
+    runs-on: ubuntu-latest
+    name: Directory Listings Index
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: main    #checkout different branch
+
+      - name: Generate Directory Listings
+        uses: jayanta525/github-pages-directory-listing@v4.0.0
+        with:
+          FOLDER: files      #directory to generate index
