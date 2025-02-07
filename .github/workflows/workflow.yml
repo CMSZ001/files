@@ -1,72 +1,56 @@
-name: Download and Deploy pages
+name: Sync Files from JSON
+
 on:
   push:
     branches:
-      - files
-  schedule:
-    - cron: '0 0 * * *'
+      - files  # 监听 files 分支的推送
 
 jobs:
-  download_files:
+  sync-files:
     runs-on: ubuntu-latest
-    name: Download Files
+
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: files  # 检出 files 分支
+
+      - name: Create temporary folder
+        run: mkdir -p /tmp/files
+
+      - name: Copy files.json to temporary folder
+        run: cp files.json /tmp/files/files.json
+
       - name: Checkout main branch
         uses: actions/checkout@v4
         with:
-          ref: main
-      - name: Checkout files branch
-        uses: actions/checkout@v4
-        with:
-          ref: files
-          path: files
+          ref: main  # 切换到 main 分支
 
-      - run: |
-          #!/bin/bash
-          FILES=$(cat .github/files.json)
-          echo "$FILES" | jq -r '.[] | " $.name)  $.url)"' | while read -r line; do
-            FILE_NAME=$(echo "$line" | awk '{print $1}')
-            FILE_URL=$(echo "$line" | awk '{print $2}')
-            if [ -f "$FILE_NAME" ]; then
-              echo "File $FILE_NAME already exists. Deleting it."
-              rm "$FILE_NAME"
-            fi
-            curl -L -o "files/$FILE_NAME" "$FILE_URL"
-            echo "Downloaded $FILE_NAME from $FILE_URL"
-          done
-      - name: Commit and push files
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用GitHub提供的Token
+      - name: Read files.json and download files
         run: |
           #!/bin/bash
-          # 配置Git用户信息
+          set -e
+          # 读取 files.json 文件
+          cat /tmp/files/files.json | jq -r '.[] | " $.filename)  $.download_url)"' | while read -r line; do
+            filename=$(echo "$line" | awk '{print $1}')
+            download_url=$(echo "$line" | awk '{print $2}')
+            echo "Processing file: $filename"
+
+            # 检查文件是否已存在
+            if [ -f "files/$filename" ]; then
+              echo "Removing existing file: $filename"
+              rm -f "files/$filename"
+            fi
+
+            # 下载文件
+            echo "Downloading file: $filename"
+            curl -L -o "files/$filename" "$download_url"
+          done
+
+      - name: Commit and push changes
+        run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          # 添加所有新下载的文件
-          git add .
-
-          # 检查是否有文件需要提交
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            # 提交更改
-            git commit -m "Add downloaded files"
-            # 推送更改
-            git push origin HEAD
-          fi
-        
-    
-  pages-directory-listing:
-    runs-on: ubuntu-latest
-    name: Directory Listings Index
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Generate Directory Listings
-        uses: jayanta525/github-pages-directory-listing@v4.0.0
-        with:
-          FOLDER: files
+          git add files/
+          git commit -m "Update files from files.json" || true
+          git push origin main
