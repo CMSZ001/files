@@ -1,39 +1,33 @@
-name: Sync Files from JSON
+name: Download Files from Links
 
 on:
   push:
     branches:
       - files
-  schedule:
-    - cron: '0 0 * * *'
 
 jobs:
-  sync-files:
+  download-files:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: files
-
-      - name: Create temporary folder
-        run: mkdir -p /tmp/files
-
-      - name: Copy files.json to temporary folder
-        run: cp files.json /tmp/files/files.json
-
+      # 检出 main 分支
       - name: Checkout main branch
         uses: actions/checkout@v4
         with:
-          ref: main  # 切换到 main 分支
+          ref: main
 
-      - name: Read files.json and download files
+      # 检出 files 分支
+      - name: Checkout files branch
+        uses: actions/checkout@v4
+        with:
+          ref: files
+          path: files-branch  # 将 files 分支的代码检出到 files-branch 目录
+
+      # 读取 files.json 文件并下载文件
+      - name: Read and download files from files.json
         run: |
-          #!/bin/bash
-          set -e
           # 读取 files.json 文件
-          cat /tmp/files/files.json | jq -r '.[] | " $.filename)  $.download_url)"' | while read -r line; do
+          cat files-branch/files.json | jq -r '.[] | " $.filename)  $.download_url)"' | while read -r line; do
             filename=$(echo "$line" | awk '{print $1}')
             download_url=$(echo "$line" | awk '{print $2}')
             echo "Processing file: $filename"
@@ -49,27 +43,11 @@ jobs:
             curl -L -o "files/$filename" "$download_url"
           done
 
-      - name: Commit and push changes
+      # 提交并推送下载的文件到 main 分支
+      - name: Commit and push files to main branch
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add files/
-          git commit -m "Update files" || true
+          git commit -m "Download files from files.json"
           git push origin main
-
-      - name: Checkout status branch
-        uses: actions/checkout@v4
-        with:
-          ref: status  # 切换到 status 分支
-
-      - name: Update status file
-        run: |
-          awk '{print $1+1}' number.txt > temp.txt && mv temp.txt number.txt
-
-      - name: Commit and push changes to status branch
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add status
-          git commit -m "Update status" || true
-          git push origin status
