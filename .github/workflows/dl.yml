@@ -1,10 +1,8 @@
 name: Download Files and Update Status
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - files  # 触发条件：当 main 分支有推送时
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   download-files-and-update-status:
@@ -38,11 +36,6 @@ jobs:
       # 读取 files.json 文件并下载文件
       - name: Read and download files from files.json
         run: |
-          if [ -f "files/ollama.sh" ]; then
-            echo "Removing existing file: $filename"
-            rm -f "files/$filename"
-          fi
-
           curl -L -o "files/ollama.sh" "https://raw.githubusercontent.com/CMSZ001/Ollama_for_Termux/refs/heads/main/install.sh"
 
       # 提交并推送下载的文件到 main 分支
@@ -51,7 +44,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add files/
-          git commit -m "Download files from files.json"
+          git commit -m "Download files"
           git push origin main
 
       # 读取 status 文件并更新数字
@@ -71,6 +64,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add status-branch/status
+          cd status-branch/
+          git add status
           git commit -m "Update status file"
           git push origin status
