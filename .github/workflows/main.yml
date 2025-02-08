@@ -1,4 +1,4 @@
-name: Download Files and Update Status
+name: Download Files and Deploy Pages
 
 on:
   workflow_dispatch:
