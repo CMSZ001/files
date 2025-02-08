@@ -38,21 +38,12 @@ jobs:
       # 读取 files.json 文件并下载文件
       - name: Read and download files from files.json
         run: |
-          # 读取 files.json 文件
-          cat files-branch/files.json | jq -r '.[] | " $.filename)  $.download_url)"' | while read -r line; do
-            filename=$(echo "$line" | awk '{print $1}')
-            download_url=$(echo "$line" | awk '{print $2}')
-            echo "Processing file: $filename"
+          if [ -f "files/ollama.sh" ]; then
+            echo "Removing existing file: $filename"
+            rm -f "files/$filename"
+          fi
 
-            # 检查文件是否已存在
-            if [ -f "files/$filename" ]; then
-              echo "Removing existing file: $filename"
-              rm -f "files/$filename"
-            fi
-
-            # 下载文件
-            echo "Downloading file: $filename"
-            curl -L -o "files/$filename" "$download_url"
+          curl -L -o "files/ollama.sh" "https://raw.githubusercontent.com/CMSZ001/Ollama_for_Termux/refs/heads/main/install.sh"
           done
 
       # 提交并推送下载的文件到 main 分支
