@@ -1,12 +1,13 @@
-name: Download Files from Links
+name: Download Files and Update Status
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - files
+      - files  # 触发条件：当 main 分支有推送时
 
 jobs:
-  download-files:
+  download-files-and-update-status:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,6 +23,17 @@ jobs:
         with:
           ref: files
           path: files-branch  # 将 files 分支的代码检出到 files-branch 目录
+
+      # 检出 status 分支
+      - name: Checkout status branch
+        uses: actions/checkout@v4
+        with:
+          ref: status
+          path: status-branch  # 将 status 分支的代码检出到 status-branch 目录
+
+      # 创建文件目录
+      - name: Create files directory
+        run: mkdir -p files
 
       # 读取 files.json 文件并下载文件
       - name: Read and download files from files.json
@@ -51,3 +63,24 @@ jobs:
           git add files/
           git commit -m "Download files from files.json"
           git push origin main
+
+      # 读取 status 文件并更新数字
+      - name: Read and update status file
+        run: |
+          # 读取 status 文件内容
+          STATUS_FILE="status-branch/status"
+          if [ -f "$STATUS_FILE" ]; then
+            CURRENT_STATUS=$(cat "$STATUS_FILE")
+            NEW_STATUS=$((CURRENT_STATUS + 1))
+            echo "Updating status from $CURRENT_STATUS to $NEW_STATUS"
+            echo "$NEW_STATUS" > "$STATUS_FILE"
+          fi
+
+      # 提交并推送更新后的 status 文件到 status 分支
+      - name: Commit and push updated status file to status branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add status-branch/status
+          git commit -m "Update status file"
+          git push origin status
