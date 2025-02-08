@@ -16,13 +16,6 @@ jobs:
         with:
           ref: main
 
-      # 检出 status 分支
-      - name: Checkout status branch
-        uses: actions/checkout@v4
-        with:
-          ref: status
-          path: status-branch  # 将 status 分支的代码检出到 status-branch 目录
-
       # 读取 files.json 文件并下载文件
       - name: Read and download files from files.json
         run: |
@@ -36,6 +29,13 @@ jobs:
           git add files/
           git commit -m "Download files"
           git push --force-with-lease origin main
+
+        # 检出 status 分支
+      - name: Checkout status branch
+        uses: actions/checkout@v4
+        with:
+          ref: status
+          path: status-branch
 
       # 读取 status 文件并更新数字
       - name: Read and update status file
