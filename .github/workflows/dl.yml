@@ -44,7 +44,6 @@ jobs:
           fi
 
           curl -L -o "files/ollama.sh" "https://raw.githubusercontent.com/CMSZ001/Ollama_for_Termux/refs/heads/main/install.sh"
-          done
 
       # 提交并推送下载的文件到 main 分支
       - name: Commit and push files to main branch
