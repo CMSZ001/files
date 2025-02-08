@@ -24,14 +24,17 @@ jobs:
       # 提交并推送下载的文件到 main 分支
       - name: Commit and push files to main branch
         run: |
+          # 配置Git用户信息
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
+            echo "Changes detected. Committing files..."
             git add files/
             git commit -m "Download files"
-            git push --force-with-lease origin main
+            git push --force-with-lease origin mai
+          fi
 
         # 检出 status 分支
       - name: Checkout status branch
