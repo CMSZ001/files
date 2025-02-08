@@ -23,10 +23,6 @@ jobs:
           ref: status
           path: status-branch  # 将 status 分支的代码检出到 status-branch 目录
 
-      # 创建文件目录
-      - name: Create files directory
-        run: mkdir -p files
-
       # 读取 files.json 文件并下载文件
       - name: Read and download files from files.json
         run: |
@@ -39,7 +35,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add files/
           git commit -m "Download files"
-          git push origin main -f
+          git push --force-with-lease origin main
 
       # 读取 status 文件并更新数字
       - name: Read and update status file
