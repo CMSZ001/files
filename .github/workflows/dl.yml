@@ -21,6 +21,11 @@ jobs:
         run: |
           curl -L -o "files/ollama.sh" "https://raw.githubusercontent.com/CMSZ001/Ollama_for_Termux/refs/heads/main/install.sh"
 
+      - name: Generate Directory Listings
+        uses: jayanta525/github-pages-directory-listing@v4.0.0
+        with:
+          FOLDER: files
+
       # 提交并推送下载的文件到 main 分支
       - name: Commit and push files to main branch
         run: |
@@ -35,32 +40,3 @@ jobs:
             git commit -m "Download files"
             git push --force-with-lease origin mai
           fi
-
-        # 检出 status 分支
-      - name: Checkout status branch
-        uses: actions/checkout@v4
-        with:
-          ref: status
-          path: status-branch
-
-      # 读取 status 文件并更新数字
-      - name: Read and update status file
-        run: |
-          # 读取 status 文件内容
-          STATUS_FILE="status-branch/status"
-          if [ -f "$STATUS_FILE" ]; then
-            CURRENT_STATUS=$(cat "$STATUS_FILE")
-            NEW_STATUS=$((CURRENT_STATUS + 1))
-            echo "Updating status from $CURRENT_STATUS to $NEW_STATUS"
-            echo "$NEW_STATUS" > "$STATUS_FILE"
-          fi
-
-      # 提交并推送更新后的 status 文件到 status 分支
-      - name: Commit and push updated status file to status branch
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          cd status-branch/
-          git add status
-          git commit -m "Update status file"
-          git push origin status
